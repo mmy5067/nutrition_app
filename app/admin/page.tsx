@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api";
 type AuthResponse = {
   authenticated?: boolean;
   email?: string;
+  is_admin?: boolean;
 };
 
 type AdminSummary = {
@@ -55,6 +56,11 @@ export default function AdminPage() {
       return;
     }
 
+    if (!me.data.is_admin) {
+      router.replace("/dashboard");
+      return;
+    }
+
     setEmail(me.data.email || "");
     const [summaryResult, usersResult, mealsResult] = await Promise.all([
       apiFetch<AdminSummary>("/api/admin/summary"),
@@ -63,7 +69,7 @@ export default function AdminPage() {
     ]);
 
     if (!summaryResult.ok || !usersResult.ok || !mealsResult.ok) {
-      setMessage("后台接口不可用，当前账号可能不是管理员。");
+      setMessage("后台接口暂不可用，请稍后重试。");
       setBooting(false);
       return;
     }
@@ -111,18 +117,16 @@ export default function AdminPage() {
         <section className={`glass-card ${styles.panel}`}>
           <div className={styles.header}>
             <div>
-              <div className="pill">管理员：{email}</div>
-              <h1 style={{ fontSize: 32, margin: "18px 0 10px" }}>/admin/ 管理面板</h1>
-              <p className="section-copy">
-                这里先补齐了旧 Flask 后台最常用的统计、用户列表和最近餐食视图。
-              </p>
+              <div className="pill">管理员账号：{email}</div>
+              <h1 style={{ fontSize: 32, margin: "18px 0 10px" }}>/admin/ 管理后台</h1>
+              <p className="section-copy">查看整体用户数据、近期餐食记录和后台基础运行情况。</p>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/dashboard" className="button-secondary">
                 用户仪表盘
               </Link>
               <Link href="/" className="button-ghost">
-                首页
+                返回首页
               </Link>
             </div>
           </div>
@@ -164,7 +168,7 @@ export default function AdminPage() {
                     <td>{user.email}</td>
                     <td>{user.is_admin ? "管理员" : "普通用户"}</td>
                     <td className={user.is_active ? styles.statusOk : styles.statusWarn}>
-                      {user.is_active ? "启用" : "停用"}
+                      {user.is_active ? "正常" : "停用"}
                     </td>
                     <td>{user.created_at ? new Date(user.created_at).toLocaleString("zh-CN") : "-"}</td>
                     <td>
@@ -189,8 +193,8 @@ export default function AdminPage() {
                 <tr>
                   <th>ID</th>
                   <th>用户</th>
-                  <th>时间</th>
-                  <th>类型</th>
+                  <th>记录时间</th>
+                  <th>餐别</th>
                   <th>食材数</th>
                 </tr>
               </thead>

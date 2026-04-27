@@ -10,7 +10,7 @@ type Mode = "login" | "register";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("login");
-  const [message, setMessage] = useState("先登录或注册一个测试账号。");
+  const [message, setMessage] = useState("登录后即可开始记录每日饮食。");
   const [status, setStatus] = useState<"idle" | "error" | "success">("idle");
   const [pending, setPending] = useState(false);
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function LoginPage() {
 
     if (result.ok && result.data.ok) {
       setStatus("success");
-      setMessage("登录成功，正在跳转。");
+      setMessage("登录成功，正在进入仪表盘。");
       router.push("/dashboard");
       router.refresh();
     } else {
@@ -56,7 +56,7 @@ export default function LoginPage() {
 
     if (!registerResult.ok || !registerResult.data.ok) {
       setStatus("error");
-      setMessage(registerResult.data.error || "注册失败。");
+      setMessage(registerResult.data.error || "注册失败，请稍后重试。");
       setPending(false);
       return;
     }
@@ -75,20 +75,19 @@ export default function LoginPage() {
     <main className={styles.wrap}>
       <div className={styles.shell}>
         <section className={`glass-card ${styles.panel}`}>
-          <div className="pill">Local Test Mode</div>
+          <div className="pill">Nutrition App</div>
           <h1 className="section-title" style={{ fontSize: "clamp(30px, 4vw, 52px)", marginTop: 18 }}>
-            登录并验证迁移后的账号体系
+            开始你的每日饮食记录
           </h1>
           <p className="section-copy" style={{ marginTop: 16 }}>
-            开发环境默认会初始化本地数据库，并自动创建管理员账号。
-            你可以先注册普通用户测试前台，再使用管理员账号进入后台检查迁移结果。
+            记录每一餐、查看每日营养汇总，并逐步建立更清晰、更可持续的健康饮食习惯。
           </p>
-          <div style={{ display: "grid", gap: 12, marginTop: 28 }}>
-            <div className="pill">管理员：admin@example.com / admin123456</div>
-            <div className="pill">后台地址：/admin/</div>
-            <div className="pill">支持注册普通测试用户</div>
+          <div style={{ display: "grid", gap: 12, marginTop: 24 }}>
+            <div className="pill">自然语言记餐</div>
+            <div className="pill">每日营养汇总</div>
+            <div className="pill">轻量健康反馈</div>
           </div>
-          <Link href="/" className="button-secondary" style={{ marginTop: 28 }}>
+          <Link href="/" className="button-secondary" style={{ marginTop: 24 }}>
             返回首页
           </Link>
         </section>
@@ -145,10 +144,10 @@ export default function LoginPage() {
               </label>
               <label className={styles.label}>
                 密码
-                <input className={styles.input} name="register_password" type="password" placeholder="至少 6 位" />
+                <input className={styles.input} name="register_password" type="password" placeholder="建议至少 6 位" />
               </label>
               <button className="button-primary" type="submit" disabled={pending}>
-                {pending ? "注册中..." : "注册并登录"}
+                {pending ? "注册中..." : "创建账号"}
               </button>
             </form>
           )}

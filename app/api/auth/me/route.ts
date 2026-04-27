@@ -1,15 +1,16 @@
-import { getSession } from "@/lib/server/auth";
+import { requireUser } from "@/lib/server/auth";
 import { json } from "@/lib/server/http";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
+  const user = await requireUser();
+  if (!user) {
     return json({ authenticated: false });
   }
 
   return json({
     authenticated: true,
-    email: session.email,
-    user_id: session.userId
+    email: user.email,
+    user_id: user.id,
+    is_admin: user.isAdmin
   });
 }
