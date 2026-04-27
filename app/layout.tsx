@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "营养记录",
-  description: "用自然语言记录饮食，让 AI 帮你沉淀每天真正可执行的营养反馈。"
+  title: "Nutrition App",
+  description: "Next.js migration for local nutrition tracking and admin testing."
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );

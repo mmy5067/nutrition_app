@@ -3,110 +3,78 @@ import styles from "./page.module.css";
 
 const features = [
   {
-    title: "一句话录餐",
-    copy: "直接输入“午饭吃了鸡胸肉、米饭和西蓝花”，系统自动拆分食材、估算热量和三大营养素。"
+    title: "自然语言记餐",
+    copy: "直接输入一段中文描述，系统会拆出餐食项目，并尽量估算热量、蛋白质、脂肪和碳水。"
   },
   {
-    title: "当天汇总可追踪",
-    copy: "同一天的摄入会自动聚合，随时看到热量、蛋白质、脂肪和碳水是否偏离目标。"
+    title: "按天汇总营养",
+    copy: "围绕每日总热量和三大营养素做汇总，方便你快速核对迁移后的记录逻辑。"
   },
   {
-    title: "不是泛泛建议",
-    copy: "AI 会结合你的身高、体重和体脂，给出更贴近实际的明日调整建议。"
+    title: "保留后台管理",
+    copy: "普通用户流程和管理员查看分开保留，便于继续沿用原来项目的管理方式。"
   }
 ];
 
 const steps = [
-  "登录后填写基本身体数据。",
-  "自然语言输入每一餐，系统自动分析并入库。",
-  "在当天结束前生成一份总结，沉淀第二天能执行的调整。"
+  "先登录或注册一个测试账号，验证注册、登录和会话是否正常。",
+  "进入仪表盘录入餐食和个人资料，检查分析结果、日汇总和 AI 总结。",
+  "如需查看整体数据，再进入 /admin/ 检查用户和餐食列表。"
 ];
 
 export default function LandingPage() {
   return (
-    <main style={{ padding: "24px 0 64px" }}>
+    <main style={{ padding: "20px 0 40px" }}>
       <div className="page-shell">
-        <section
-          className="glass-card rise-in"
-          style={{
-            borderRadius: "36px",
-            padding: "24px",
-            overflow: "hidden",
-            position: "relative"
-          }}
-        >
+        <section className="glass-card rise-in" style={{ borderRadius: 14, padding: 18 }}>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              gap: 16,
+              gap: 12,
               flexWrap: "wrap"
             }}
           >
-            <div className="pill">Nutrition Log / AI Diet Journal</div>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div className="pill">Nutrition App / Next.js</div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <Link href="/login" className="button-ghost">
                 登录
               </Link>
               <Link href="/dashboard" className="button-primary">
-                打开应用
+                进入仪表盘
               </Link>
             </div>
           </div>
 
           <div className={styles.heroGrid}>
             <div>
-              <p className="pill" style={{ marginBottom: 18 }}>
-                适合邀请制内测、轻量营养跟踪、AI 辅助复盘
-              </p>
-              <h1 className="section-title" style={{ maxWidth: 620 }}>
-                把饮食记录，从机械记账改成可持续的日常反馈。
+              <h1 className="section-title" style={{ marginTop: 10 }}>
+                营养记录应用
               </h1>
-              <p className="section-copy" style={{ maxWidth: 620, marginTop: 20 }}>
-                这个版本以 Next.js 为前端主入口，面向真实使用场景重新组织了登录、记录和总结流程。
-                首页先把价值讲清楚，应用页再直接进入录入和追踪，不再让用户落地就面对一整块表单。
+              <p className="section-copy" style={{ marginTop: 14, maxWidth: 680 }}>
+                这是从旧版 Python + JS 项目迁移过来的 Next.js 版本。
+                当前重点是保证本地联调、餐食记录、每日汇总和后台管理都能稳定使用，
+                风格也尽量回到原项目那种轻量、实用的工具界面。
               </p>
-              <div style={{ display: "flex", gap: 14, marginTop: 30, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
                 <Link href="/dashboard" className="button-primary">
-                  立即开始记录
+                  开始测试
                 </Link>
-                <Link href="/login" className="button-secondary">
-                  登录 / 注册
+                <Link href="/admin/" className="button-secondary">
+                  后台入口
                 </Link>
               </div>
             </div>
 
-            <div
-              className="glass-card"
-              style={{
-                borderRadius: "28px",
-                padding: 24,
-                alignSelf: "start",
-                background: "linear-gradient(180deg, rgba(255,253,248,0.9), rgba(251,243,234,0.84))"
-              }}
-            >
-              <div style={{ color: "var(--muted)", fontSize: 14 }}>今日样例</div>
-              <div style={{ marginTop: 16, fontSize: 28, lineHeight: 1.2 }}>午饭吃了鸡胸肉、糙米饭和一份西蓝花。</div>
-              <div
-                style={{
-                  marginTop: 20,
-                  borderRadius: 20,
-                  padding: 18,
-                  background: "rgba(255,255,255,0.78)",
-                  border: "1px solid var(--line)"
-                }}
-              >
-                <div style={{ display: "grid", gap: 12 }}>
-                  <StatLine label="估算热量" value="512 kcal" />
-                  <StatLine label="蛋白质" value="42 g" />
-                  <StatLine label="脂肪" value="11 g" />
-                  <StatLine label="碳水" value="58 g" />
-                </div>
+            <div className="glass-card" style={{ borderRadius: 14, padding: 16, background: "var(--card-soft)" }}>
+              <div style={{ color: "var(--muted)", fontSize: 14 }}>本地测试默认配置</div>
+              <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+                <StatLine label="项目端口" value="5000" />
+                <StatLine label="本地数据库" value="db/local.sqlite" />
+                <StatLine label="管理员账号" value="admin@example.com" />
+                <StatLine label="管理员密码" value="admin123456" />
               </div>
-              <p className="section-copy" style={{ marginTop: 18 }}>
-                AI 自动解析食物结构，用户需要做的只是把今天吃了什么说清楚。
-              </p>
             </div>
           </div>
         </section>
@@ -116,65 +84,58 @@ export default function LandingPage() {
             <article
               key={item.title}
               className="glass-card rise-in"
-              style={{ borderRadius: "24px", padding: 24, animationDelay: `${index * 120}ms` }}
+              style={{ borderRadius: 14, padding: 16, animationDelay: `${index * 80}ms` }}
             >
-              <div style={{ color: "var(--accent-deep)", fontSize: 14 }}>0{index + 1}</div>
-              <h2 style={{ margin: "14px 0 10px", fontSize: 24 }}>{item.title}</h2>
+              <div style={{ color: "var(--green)", fontSize: 13 }}>功能 0{index + 1}</div>
+              <h2 style={{ margin: "10px 0 8px", fontSize: 22 }}>{item.title}</h2>
               <p className="section-copy">{item.copy}</p>
             </article>
           ))}
         </section>
 
-        <section
-          className="glass-card"
-          style={{
-            borderRadius: "30px",
-            padding: "32px 24px",
-            marginTop: 24
-          }}
-        >
+        <section className="glass-card" style={{ borderRadius: 14, padding: 18, marginTop: 18 }}>
           <div className={styles.processGrid}>
-          <div>
-            <p className="pill">迁移后的信息架构</p>
-            <h2 className="section-title" style={{ fontSize: "clamp(26px, 3vw, 40px)", marginTop: 18 }}>
-              首页负责转化，应用页负责完成任务。
-            </h2>
-          </div>
-          <div style={{ display: "grid", gap: 14 }}>
-            {steps.map((step, index) => (
-              <div
-                key={step}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "56px 1fr",
-                  gap: 14,
-                  alignItems: "start",
-                  padding: 16,
-                  borderRadius: 18,
-                  background: "rgba(255,255,255,0.5)",
-                  border: "1px solid var(--line)"
-                }}
-              >
+            <div>
+              <p className="pill">测试流程</p>
+              <h2 className="section-title" style={{ fontSize: "clamp(24px, 3vw, 34px)", marginTop: 14 }}>
+                推荐按这个顺序验证
+              </h2>
+            </div>
+            <div style={{ display: "grid", gap: 10 }}>
+              {steps.map((step, index) => (
                 <div
+                  key={step}
                   style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: "18px",
                     display: "grid",
-                    placeItems: "center",
-                    background: "linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0.75))",
-                    color: "var(--accent-deep)",
-                    fontSize: 22
+                    gridTemplateColumns: "42px 1fr",
+                    gap: 12,
+                    alignItems: "start",
+                    padding: 12,
+                    borderRadius: 12,
+                    background: "var(--card-soft)",
+                    border: "1px solid var(--border)"
                   }}
                 >
-                  {index + 1}
+                  <div
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 10,
+                      display: "grid",
+                      placeItems: "center",
+                      background: "var(--pill)",
+                      color: "var(--green)",
+                      fontWeight: 700
+                    }}
+                  >
+                    {index + 1}
+                  </div>
+                  <p className="section-copy" style={{ marginTop: 2 }}>
+                    {step}
+                  </p>
                 </div>
-                <p className="section-copy" style={{ marginTop: 6 }}>
-                  {step}
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           </div>
         </section>
       </div>

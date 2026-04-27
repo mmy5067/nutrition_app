@@ -34,10 +34,10 @@ export default function DashboardPage() {
     weight_kg: null,
     body_fat_pct: null
   });
-  const [profileMessage, setProfileMessage] = useState("填写后会用于 AI 总结。");
+  const [profileMessage, setProfileMessage] = useState("完善基础资料，便于后续统计。");
   const [profilePending, setProfilePending] = useState(false);
   const [mealInput, setMealInput] = useState("");
-  const [mealMessage, setMealMessage] = useState("可以直接输入一整段自然语言。");
+  const [mealMessage, setMealMessage] = useState("输入一段餐食描述，或后续接入 AI 自动解析。");
   const [mealStatus, setMealStatus] = useState<"muted" | "ok" | "error">("muted");
   const [mealPending, setMealPending] = useState(false);
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -114,9 +114,9 @@ export default function DashboardPage() {
 
     if (result.ok && result.data.profile) {
       setProfile(result.data.profile);
-      setProfileMessage("档案已保存。");
+      setProfileMessage("资料已保存。");
     } else {
-      setProfileMessage(result.data.error || "档案保存失败。");
+      setProfileMessage(result.data.error || "资料保存失败。");
     }
 
     setProfilePending(false);
@@ -125,13 +125,13 @@ export default function DashboardPage() {
   async function analyzeMeal() {
     if (!mealInput.trim()) {
       setMealStatus("error");
-      setMealMessage("先输入今天这餐吃了什么。");
+      setMealMessage("请先输入餐食描述。");
       return;
     }
 
     setMealPending(true);
     setMealStatus("muted");
-    setMealMessage("AI 正在分析并记录这餐。");
+    setMealMessage("正在分析餐食...");
 
     const result = await apiFetch<{ ok?: boolean; error?: string; comment?: string }>("/api/ai/analyze_meal", {
       method: "POST",
@@ -144,11 +144,11 @@ export default function DashboardPage() {
     if (result.ok && result.data.ok) {
       setMealInput("");
       setMealStatus("ok");
-      setMealMessage(result.data.comment || "这餐已记录。");
+      setMealMessage(result.data.comment || "餐食已记录。");
       await loadTodayData();
     } else {
       setMealStatus("error");
-      setMealMessage(result.data.error || "AI 分析失败。");
+      setMealMessage(result.data.error || "餐食分析失败。");
     }
 
     setMealPending(false);
@@ -175,7 +175,7 @@ export default function DashboardPage() {
         });
       }
     } else {
-      setSummary(result.data.error || "今天还没有足够的记录可以生成总结。");
+      setSummary(result.data.error || "生成总结失败。请先确认当天已有餐食，并已配置 LLM。");
     }
 
     setSummaryPending(false);
@@ -211,7 +211,7 @@ export default function DashboardPage() {
     return (
       <main className={styles.wrap}>
         <div className="page-shell">
-          <section className={`glass-card ${styles.panel}`}>正在加载新的 Next.js 应用界面...</section>
+          <section className={`glass-card ${styles.panel}`}>正在加载仪表盘...</section>
         </div>
       </main>
     );
@@ -223,12 +223,17 @@ export default function DashboardPage() {
         <div className={styles.grid}>
           <aside className={`${styles.stack} ${styles.sticky}`}>
             <section className={`glass-card ${styles.panel}`}>
-              <div className="pill">已登录: {email}</div>
-              <h1 style={{ fontSize: 32, margin: "18px 0 10px" }}>今日营养面板</h1>
-              <p className="section-copy">记录、汇总和建议都放在一个页面里，减少来回切换。</p>
+              <div className="pill">当前账号：{email}</div>
+              <h1 style={{ fontSize: 32, margin: "18px 0 10px" }}>营养仪表盘</h1>
+              <p className="section-copy">
+                这里优先用于验证注册、登录、资料、餐食记录与每日汇总接口是否正常。
+              </p>
               <div style={{ display: "flex", gap: 12, marginTop: 20, flexWrap: "wrap" }}>
                 <Link href="/" className="button-secondary">
-                  查看落地页
+                  返回首页
+                </Link>
+                <Link href="/admin/" className="button-secondary">
+                  后台面板
                 </Link>
                 <button className="button-ghost" type="button" onClick={() => void logout()}>
                   退出登录
@@ -237,7 +242,7 @@ export default function DashboardPage() {
             </section>
 
             <section className={`glass-card ${styles.panel}`}>
-              <h2 style={{ marginTop: 0 }}>我的档案</h2>
+              <h2 style={{ marginTop: 0 }}>个人资料</h2>
               <div className={styles.fieldGrid}>
                 <label className={styles.label}>
                   身高 cm
@@ -268,7 +273,7 @@ export default function DashboardPage() {
                 </label>
               </div>
               <button className="button-primary" style={{ marginTop: 18 }} type="button" onClick={() => void saveProfile()}>
-                {profilePending ? "保存中..." : "保存档案"}
+                {profilePending ? "保存中..." : "保存资料"}
               </button>
               <p className={styles.messageMuted} style={{ marginTop: 14 }}>
                 {profileMessage}
@@ -278,16 +283,16 @@ export default function DashboardPage() {
 
           <div className={styles.stack}>
             <section className={`glass-card ${styles.panel}`}>
-              <div className="pill">AI 录餐</div>
-              <h2 style={{ margin: "16px 0 10px" }}>把今天这一餐直接写出来</h2>
+              <div className="pill">AI 分析</div>
+              <h2 style={{ margin: "16px 0 10px" }}>输入一段餐食描述</h2>
               <p className="section-copy">
-                示例: 午饭吃了 150g 鸡胸肉、200g 米饭和一份西蓝花，另外喝了无糖美式。
+                例如：鸡胸肉 150g、米饭 200g、西兰花一份。未配置模型时，这个功能会返回配置错误，不影响普通记录与后台测试。
               </p>
               <textarea
                 className={styles.textarea}
                 value={mealInput}
                 onChange={(event) => setMealInput(event.target.value)}
-                placeholder="用自然语言描述这一餐"
+                placeholder="描述今天这顿饭吃了什么"
                 style={{ marginTop: 18 }}
               />
               <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
@@ -295,7 +300,7 @@ export default function DashboardPage() {
                   {mealPending ? "分析中..." : "分析并记录"}
                 </button>
                 <button className="button-secondary" type="button" onClick={() => void generateSummary()}>
-                  {summaryPending ? "生成中..." : "生成今日总结"}
+                  {summaryPending ? "生成中..." : "生成每日总结"}
                 </button>
               </div>
               <p
@@ -330,9 +335,9 @@ export default function DashboardPage() {
             </section>
 
             <section className={`glass-card ${styles.panel}`}>
-              <h2 style={{ marginTop: 0 }}>今日记录</h2>
+              <h2 style={{ marginTop: 0 }}>今日餐食</h2>
               {meals.length === 0 ? (
-                <p className="section-copy">今天还没有记录。先在上方输入一餐，让系统生成第一条数据。</p>
+                <p className="section-copy">今天还没有记录餐食。</p>
               ) : (
                 <div className={styles.mealList}>
                   {meals.map((meal) => (
@@ -358,7 +363,7 @@ export default function DashboardPage() {
                             <div>
                               <strong>{item.name}</strong>
                               <div className="section-copy" style={{ marginTop: 6, fontSize: 14 }}>
-                                {item.quantity !== null ? `${formatNumber(item.quantity)}${item.unit || ""}` : "数量未估算"}
+                                {item.quantity !== null ? `${formatNumber(item.quantity)}${item.unit || ""}` : "数量未填"}
                               </div>
                             </div>
                             <div style={{ textAlign: "right" }}>
@@ -377,14 +382,14 @@ export default function DashboardPage() {
             </section>
 
             <section className={`glass-card ${styles.panel}`}>
-              <h2 style={{ marginTop: 0 }}>今日 AI 总结</h2>
+              <h2 style={{ marginTop: 0 }}>AI 每日总结</h2>
               <p className="section-copy" style={{ whiteSpace: "pre-wrap", marginTop: 14 }}>
-                {summary || "还没有生成总结。上方点击“生成今日总结”即可。"}
+                {summary || "暂无总结。配置好 LLM 并生成后会显示在这里。"}
               </p>
             </section>
 
             <section className={`glass-card ${styles.panel}`}>
-              <h2 style={{ marginTop: 0 }}>历史查看</h2>
+              <h2 style={{ marginTop: 0 }}>历史汇总</h2>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
                 <input
                   className={styles.input}
@@ -394,7 +399,7 @@ export default function DashboardPage() {
                   style={{ maxWidth: 220 }}
                 />
                 <button className="button-secondary" type="button" onClick={() => void loadHistoryTotals()}>
-                  查看该日总量
+                  查询当日汇总
                 </button>
               </div>
               {historyTotals ? (
@@ -406,7 +411,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <p className="section-copy" style={{ marginTop: 14 }}>
-                  选择日期后查看当天汇总。
+                  选择一个日期后查看汇总。
                 </p>
               )}
             </section>
@@ -446,10 +451,10 @@ function toNumber(value: string) {
 }
 
 function guessMealType(text: string) {
-  if (/早餐|早饭|早上|morning/i.test(text)) return "早餐";
-  if (/午餐|中午|午饭|lunch/i.test(text)) return "午餐";
-  if (/晚餐|晚饭|晚上|dinner/i.test(text)) return "晚餐";
-  if (/夜宵|宵夜/i.test(text)) return "夜宵";
+  if (/早餐|早饭|morning|breakfast/i.test(text)) return "早餐";
+  if (/午餐|午饭|lunch/i.test(text)) return "午餐";
+  if (/晚餐|晚饭|dinner/i.test(text)) return "晚餐";
   if (/加餐|snack/i.test(text)) return "加餐";
+  if (/夜宵|宵夜/i.test(text)) return "夜宵";
   return null;
 }

@@ -7,10 +7,21 @@ function read(name: string, fallback?: string) {
   return value;
 }
 
+function readDatabaseUrl() {
+  const configured = process.env.DATABASE_URL?.trim();
+  if (!configured) {
+    return "sqlite:./db/local.sqlite";
+  }
+
+  return configured.replace("postgresql+psycopg2://", "postgresql://");
+}
+
 export const env = {
-  databaseUrl: read("DATABASE_URL").replace("postgresql+psycopg2://", "postgresql://"),
+  databaseUrl: readDatabaseUrl(),
   sessionSecret: read("SECRET_KEY", "dev-secret-change-me"),
   openAiApiKey: process.env.OPENAI_API_KEY ?? "",
   openAiBaseUrl: process.env.OPENAI_BASE_URL ?? "",
-  modelName: process.env.MODEL_NAME ?? "gpt-4o-mini"
+  modelName: process.env.MODEL_NAME ?? "gpt-4o-mini",
+  adminEmail: process.env.ADMIN_EMAIL?.trim().toLowerCase() || "admin@example.com",
+  adminPassword: process.env.ADMIN_PASSWORD ?? "admin123456"
 };

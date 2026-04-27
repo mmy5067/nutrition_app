@@ -1,21 +1,21 @@
 .heroGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-  gap: 28px;
-  margin-top: 42px;
+  gap: 18px;
+  margin-top: 18px;
 }
 
 .featureGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 24px;
+  gap: 16px;
+  margin-top: 18px;
 }
 
 .processGrid {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 18px;
 }
 
 @media (max-width: 960px) {

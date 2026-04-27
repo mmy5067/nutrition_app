@@ -49,7 +49,7 @@ export async function POST(request: Request) {
          values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           mealId,
-          (item.name || "").trim() || "未命名",
+          (item.name || "").trim() || "未命名食物",
           toNumberOrNull(item.quantity),
           item.unit ?? null,
           toNumberOrNull(item.calories),

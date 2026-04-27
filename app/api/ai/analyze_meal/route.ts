@@ -21,6 +21,37 @@ type AiResponse = {
   items: AiItem[];
 };
 
+function needsNutritionBackfill(items: AiItem[]) {
+  if (!items.length) return true;
+
+  return items.every(
+    (item) =>
+      item.calories === null &&
+      item.protein === null &&
+      item.fat === null &&
+      item.carbs === null
+  );
+}
+
+async function backfillNutrition(items: AiItem[]) {
+  const result = await chatJson<{ items: AiItem[] }>(
+    [
+      {
+        role: "system",
+        content:
+          "你是营养估算助手。请根据食物名称、数量和单位，为每一项估算 calories、protein、fat、carbs。除非信息极度不足，否则必须返回数字。只输出 JSON：{\"items\":[...]}。"
+      },
+      {
+        role: "user",
+        content: JSON.stringify({ items }, null, 2)
+      }
+    ],
+    700
+  );
+
+  return Array.isArray(result.items) ? result.items : items;
+}
+
 export async function POST(request: Request) {
   const user = await requireUser();
   if (!user) return unauthorized();
@@ -45,11 +76,11 @@ export async function POST(request: Request) {
       {
         role: "system",
         content:
-          "你是营养记录助手。请从用户描述中提取本餐食物，并只返回合法 JSON。结构为 {\"ok\":true,\"items\":[{\"name\":\"\",\"quantity\":0,\"unit\":\"g\",\"calories\":0,\"protein\":0,\"fat\":0,\"carbs\":0}],\"comment\":\"一句简短反馈\",\"meal_type_inferred\":\"早餐/午餐/晚餐/加餐/夜宵/不确定\"}。如果无法判断，quantity 和营养字段可为 null。不要输出 JSON 之外的任何文字。"
+          "你是营养记录助手。请把用户输入的一段餐食描述，转换成 JSON：{\"ok\":true,\"items\":[{\"name\":\"\",\"quantity\":0,\"unit\":\"g\",\"calories\":0,\"protein\":0,\"fat\":0,\"carbs\":0}],\"comment\":\"...\",\"meal_type_inferred\":\"早餐/午餐/晚餐/加餐/夜宵/未分类\"}。你需要优先给出热量和三大营养素的合理估算，只有在完全无法判断时才允许用 null。"
       },
       {
         role: "user",
-        content: `描述：${text}\n时间：${eatenAt.toISOString()}\nmeal_type：${body.meal_type || "NULL"}`
+        content: `餐食描述: ${text}\n记录时间: ${eatenAt.toISOString()}\n用户指定类型: ${body.meal_type || "NULL"}`
       }
     ],
     700
@@ -59,6 +90,10 @@ export async function POST(request: Request) {
     return badRequest(parsed.error || "AI did not return valid items");
   }
 
+  const items = needsNutritionBackfill(parsed.items)
+    ? await backfillNutrition(parsed.items)
+    : parsed.items;
+
   const mealId = await withTransaction(async (client) => {
     const mealResult = await client.query(
       "insert into meals (user_id, eaten_at, meal_type, note) values ($1, $2, $3, $4) returning id",
@@ -67,7 +102,7 @@ export async function POST(request: Request) {
 
     const createdMealId = Number(mealResult.rows[0].id);
 
-    for (const item of parsed.items) {
+    for (const item of items) {
       await client.query(
         `insert into meal_items
          (meal_id, name, quantity, unit, calories, protein, fat, carbs, extra)
@@ -95,7 +130,7 @@ export async function POST(request: Request) {
       eaten_at: eatenAt.toISOString(),
       meal_type: body.meal_type || parsed.meal_type_inferred || null,
       note: body.note ?? null,
-      items: parsed.items
+      items
     },
     comment: parsed.comment || ""
   });

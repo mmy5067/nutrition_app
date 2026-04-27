@@ -6,34 +6,35 @@
 }
 
 .shell {
-  width: min(980px, calc(100vw - 24px));
+  width: min(940px, calc(100vw - 24px));
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(340px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
   gap: 18px;
 }
 
 .panel {
-  border-radius: 30px;
-  padding: 28px;
+  border-radius: 18px;
+  padding: 24px;
 }
 
 .tabs {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  padding: 6px;
+  display: flex;
+  gap: 6px;
+  padding: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.56);
-  border: 1px solid var(--line);
-  margin-bottom: 20px;
+  background: var(--pill);
+  border: 1px solid var(--border);
+  margin-bottom: 18px;
 }
 
 .tab,
 .tabActive {
+  flex: 1;
   border-radius: 999px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: none;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .tab {
@@ -42,8 +43,9 @@
 }
 
 .tabActive {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  background: var(--green);
   color: #fff;
+  box-shadow: 0 4px 10px rgba(73, 160, 120, 0.26);
 }
 
 .form {
@@ -60,10 +62,10 @@
 
 .input {
   width: 100%;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-soft);
+  padding: 12px 14px;
   color: var(--text);
 }
 
@@ -79,11 +81,11 @@
 }
 
 .error {
-  color: #9f2d1c;
+  color: #b13b3b;
 }
 
 .success {
-  color: #3f6544;
+  color: #2f7a57;
 }
 
 @media (max-width: 900px) {

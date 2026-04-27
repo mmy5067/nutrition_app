@@ -1,20 +1,16 @@
 :root {
-  --bg: #f6f1e8;
-  --surface: rgba(255, 251, 244, 0.86);
-  --surface-strong: #fffdf8;
-  --card: rgba(255, 255, 255, 0.72);
-  --line: rgba(53, 42, 27, 0.12);
-  --text: #1d160f;
-  --muted: #6f6253;
-  --accent: #cf5f34;
-  --accent-deep: #9d3f1d;
-  --accent-soft: #f2d5c5;
-  --olive: #506143;
-  --shadow: 0 24px 80px rgba(77, 48, 18, 0.12);
-  --radius-xl: 28px;
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --container: 1180px;
+  --bg: #f7fbf8;
+  --card: #ffffff;
+  --card-soft: #f9fcfa;
+  --green: #49a078;
+  --green-weak: #79c2a0;
+  --text: #1d2b24;
+  --muted: #677b72;
+  --border: #e7efe9;
+  --pill: #f0f7f3;
+  --danger: #d64545;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  --container: 1200px;
 }
 
 * {
@@ -27,13 +23,10 @@ html {
 
 body {
   margin: 0;
-  color: var(--text);
-  font-family: "Noto Serif SC", "Source Han Serif SC", "PingFang SC", "Microsoft YaHei", serif;
-  background:
-    radial-gradient(circle at top left, rgba(207, 95, 52, 0.22), transparent 30%),
-    radial-gradient(circle at top right, rgba(80, 97, 67, 0.18), transparent 28%),
-    linear-gradient(180deg, #f8f3eb 0%, #f3ede3 38%, #efe7dc 100%);
   min-height: 100vh;
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
 }
 
 a {
@@ -48,27 +41,40 @@ select {
   font: inherit;
 }
 
+input,
+textarea,
+select {
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(73, 160, 120, 0.08);
+}
+
 .page-shell {
   width: min(var(--container), calc(100vw - 32px));
   margin: 0 auto;
 }
 
 .glass-card {
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: var(--card);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   border-radius: 999px;
-  padding: 10px 16px;
-  border: 1px solid var(--line);
+  padding: 8px 12px;
+  border: 1px dashed var(--border);
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--pill);
+  font-size: 14px;
 }
 
 .button-primary,
@@ -77,10 +83,10 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  transition: filter 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .button-primary:hover,
@@ -90,44 +96,43 @@ select {
 }
 
 .button-primary {
-  padding: 14px 22px;
-  color: #fff8f4;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-  box-shadow: 0 14px 34px rgba(157, 63, 29, 0.28);
+  padding: 10px 14px;
+  color: #fff;
+  background: var(--green);
+  box-shadow: 0 6px 16px rgba(73, 160, 120, 0.25);
 }
 
 .button-secondary {
-  padding: 14px 22px;
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.56);
-  border: 1px solid var(--line);
+  padding: 10px 14px;
+  color: var(--green);
+  background: #fff;
+  border: 1px solid var(--green);
 }
 
 .button-ghost {
-  padding: 10px 16px;
+  padding: 10px 14px;
   color: var(--muted);
   background: transparent;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
 }
 
 .section-title {
   margin: 0;
-  font-size: clamp(28px, 4vw, 48px);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.15;
 }
 
 .section-copy {
   margin: 0;
   color: var(--muted);
-  line-height: 1.8;
-  font-size: 16px;
+  line-height: 1.65;
+  font-size: 15px;
 }
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -136,7 +141,7 @@ select {
 }
 
 .rise-in {
-  animation: rise-in 700ms ease both;
+  animation: rise-in 320ms ease both;
 }
 
 @media (max-width: 900px) {
