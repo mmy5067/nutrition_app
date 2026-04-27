@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <title>管理面板 · 营养记录</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    body { background:#f5faf7; margin:0; }
+    .admin-wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 2rem;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Microsoft YaHei",sans-serif;
+    }
+    .admin-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:.5rem;
+      margin-bottom:1.2rem;
+    }
+    .admin-header h1 {
+      margin:0;
+      font-size:1.5rem;
+      color:#1b4332;
+    }
+    .admin-header small {
+      display:block;
+      font-size:.75rem;
+      color:#607d68;
+    }
+    .stat-grid {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:.6rem;
+      margin-bottom:1.2rem;
+    }
+    .stat {
+      background:#ffffff;
+      border-radius:14px;
+      padding:.6rem .7rem;
+      box-shadow:0 8px 24px rgba(0,0,0,.04);
+      border:1px solid #e4f0e8;
+    }
+    .stat-label {
+      font-size:.72rem;
+      color:#6c7b74;
+    }
+    .stat-value {
+      font-size:1.1rem;
+      font-weight:600;
+      color:#23493b;
+    }
+    .cards {
+      display:grid;
+      grid-template-columns:1.6fr 2fr;
+      gap:.8rem;
+    }
+    .card {
+      background:#fff;
+      border-radius:14px;
+      padding:.7rem .75rem;
+      box-shadow:0 8px 24px rgba(0,0,0,.04);
+      border:1px solid #e4f0e8;
+      overflow:hidden;
+    }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:.78rem;
+    }
+    th, td {
+      padding:.25rem .2rem;
+      border-bottom:1px solid #eef3ef;
+      text-align:left;
+      white-space:nowrap;
+    }
+    th {
+      font-weight:600;
+      color:#6c7b74;
+      font-size:.7rem;
+    }
+    tr:last-child td { border-bottom:none; }
+    .muted { color:#6c7b74; font-size:.72rem; }
+    .btn-xs {
+      padding:.12rem .35rem;
+      font-size:.7rem;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+    }
+    .btn-danger {
+      background:#e03131;
+      color:#fff;
+    }
+    .btn-outline {
+      background:transparent;
+      border:1px solid #49a078;
+      color:#2b5c3c;
+    }
+    @media (max-width: 900px){
+      .stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .cards { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="admin-wrap">
+  <div class="admin-header">
+    <div>
+      <h1>营养记录 · 管理面板</h1>
+      <small>仅管理员可见 · {{ now.strftime('%Y-%m-%d %H:%M:%S') }} UTC ·
+        服务已运行：{{ uptime or 'N/A' }}</small>
+    </div>
+    <div class="muted">
+      建议通过 Nginx 仅允许宿舍出口 IP 访问本页面。<br>
+      用户操作会实时生效，请谨慎删除。
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="stat-label">总用户数</div>
+      <div class="stat-value" id="stat_total_users">{{ total_users }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">近 7 天有记录用户</div>
+      <div class="stat-value" id="stat_active_7d">{{ active_users_7d }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">总餐食记录</div>
+      <div class="stat-value" id="stat_total_meals">{{ total_meals }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">近 24 小时新增餐食</div>
+      <div class="stat-value" id="stat_meals_24h">{{ meals_24h }}</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="stat-label" style="margin-bottom:.3rem;">用户列表（最近 20）</div>
+      <table id="user_table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>邮箱</th>
+            <th>注册时间</th>
+            <th>Admin</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for u in latest_users %}
+          <tr data-id="{{ u.id }}">
+            <td>{{ u.id }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.created_at.strftime('%m-%d %H:%M') if u.created_at else '' }}</td>
+            <td>{{ '✓' if u.is_admin else '' }}</td>
+            <td>
+              {% if not u.is_admin %}
+              <button class="btn-xs btn-danger" onclick="deleteUser('{{ u.id }}', '{{ u.email }}')">删除</button>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="stat-label" style="margin-top:.4rem;">邀请码管理</div>
+      <div class="muted" id="invite_msg"></div>
+      <button class="btn-xs btn-outline" onclick="genInvite()">生成新邀请码</button>
+      <div id="invite_list" class="muted" style="margin-top:.2rem;"></div>
+    </div>
+
+    <div class="card">
+      <div class="stat-label" style="margin-bottom:.3rem;">最近 30 条餐食记录</div>
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>用户</th>
+            <th>类型</th>
+            <th>条目数</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for m in latest_meals %}
+          <tr>
+            <td>{{ m.eaten_at.strftime('%m-%d %H:%M') if m.eaten_at else '' }}</td>
+            <td>{{ m.user.email if m.user else '' }}</td>
+            <td>{{ m.meal_type or '' }}</td>
+            <td>{{ m.items|length }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="muted" style="margin-top:.4rem;">
+        进程状态请通过：<code>systemctl status nutrition_app</code> 或本页面顶部 uptime 辅助判断。
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/admin.js"></script>
+
+
+</body>
+</html>

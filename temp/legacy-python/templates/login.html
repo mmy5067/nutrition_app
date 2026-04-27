@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>登录 · 营养记录</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
+
+  <meta name="theme-color" content="#49a078">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="营养记录">
+
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg, #f7fbf8);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro SC", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text, #123);
+    }
+
+    .auth-wrap {
+      width: 100%;
+      max-width: 420px;
+      padding: 1.5rem;
+    }
+
+    .auth-card {
+      background: var(--card, #fff);
+      border-radius: 18px;
+      padding: 1.8rem 1.6rem 1.4rem;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, .06);
+      border: 1px solid var(--border, #e7efe9);
+    }
+
+    .logo-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #49a078;
+      display: inline-block;
+      margin-right: .5rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      color: #1b4332;
+    }
+
+    h1 span.sub {
+      font-size: .8rem;
+      font-weight: 400;
+      color: var(--muted, #667);
+    }
+
+    label {
+      display: block;
+      font-size: .85rem;
+      margin-top: 1rem;
+      margin-bottom: .25rem;
+      color: var(--muted, #677);
+    }
+
+    input {
+      width: 100%;
+      padding: .55rem .7rem;
+      border-radius: 10px;
+      border: 1px solid var(--border, #e7efe9);
+      outline: none;
+      font-size: .9rem;
+      background: #f9fcfa;
+    }
+
+    input:focus {
+      border-color: #49a078;
+      box-shadow: 0 0 0 2px rgba(73, 160, 120, .08);
+      background: #fff;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 1rem;
+      padding: .65rem;
+      border: none;
+      border-radius: 10px;
+      background: #49a078;
+      color: #fff;
+      font-weight: 600;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.03);
+      box-shadow: 0 8px 20px rgba(73, 160, 120, .20);
+    }
+
+    .muted {
+      margin-top: .5rem;
+      font-size: .75rem;
+      color: var(--muted, #667);
+    }
+
+    .tabs {
+      display: flex;
+      gap: .35rem;
+      margin-top: 1rem;
+      margin-bottom: .3rem;
+      background: #f0f7f3;
+      padding: .15rem;
+      border-radius: 999px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: .25rem .4rem;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      font-size: .8rem;
+      color: var(--muted, #667);
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: #49a078;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(73, 160, 120, .26);
+    }
+
+    .error {
+      font-size: .78rem;
+      color: #e03131;
+      margin-top: .25rem;
+    }
+
+    .ok {
+      font-size: .78rem;
+      color: #2b8a3e;
+      margin-top: .25rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>
+        <span class="logo-dot"></span>
+        营养记录
+        <span class="sub">邀请制 · 私人营养助手</span>
+      </h1>
+
+      <div class="tabs">
+        <button id="tab_login" class="tab-btn active">登录</button>
+        <button id="tab_register" class="tab-btn">注册（需邀请码）</button>
+      </div>
+
+      <!-- 登录 -->
+      <div id="panel_login">
+        <label>邮箱</label>
+        <input id="login_email" type="email" placeholder="you@example.com" />
+        <label>密码</label>
+        <input id="login_password" type="password" placeholder="请输入密码" />
+        <button id="btn_login">登录</button>
+        <div id="login_msg" class="muted"></div>
+      </div>
+
+      <!-- 注册 -->
+      <div id="panel_register" style="display:none;">
+        <label>邮箱</label>
+        <input id="reg_email" type="email" placeholder="you@example.com" />
+        <label>密码</label>
+        <input id="reg_password" type="password" placeholder="至少 6 位，建议复杂一些" />
+        <label>邀请码</label>
+        <input id="reg_code" type="text" placeholder="请填写收到的邀请码" />
+        <button id="btn_register">注册并登录</button>
+        <div id="reg_msg" class="muted"></div>
+      </div>
+
+      <div class="muted">
+        本服务为受邀用户提供简单、克制的饮食记录与营养建议，数据仅用于个人追踪。
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/login.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>营养记录 · 饮食日记</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
+
+  <meta name="theme-color" content="#49a078">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="营养记录">
+
+  <!-- 页内小补充：仅控制移动端折叠栏显示，不动全局样式文件 -->
+  <style>
+    /* 修正全局：不横向滚动，整体居中 */
+    html,
+    body {
+      max-width: 100%;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    .layout {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 12px;
+      box-sizing: border-box;
+    }
+
+    .mobile-only {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .mobile-only {
+        display: block;
+      }
+    }
+
+    /* 餐食录入输入框：PC & 手机都够用 */
+    #meal_input {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 140px;
+      padding: 0.6rem 0.7rem;
+      resize: vertical;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* 覆盖原 CSS 对 .items li 的 grid 设定，避免挤出屏幕 */
+    .items {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .items li {
+      list-style: none;
+      margin: 0.15rem 0;
+      padding: 0;
+      display: block !important;
+      grid-template-columns: none !important;
+      gap: 0 !important;
+    }
+
+    /* —— 单个食材：两行结构，表格感 —— */
+
+    /* 第一行：名称 | 份量 | kcal */
+    .meal-item-line1 {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) auto auto;
+      column-gap: 0.4rem;
+      align-items: baseline;
+      width: 100%;
+    }
+
+    .meal-name {
+      font-weight: 500;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meal-qty,
+    .meal-cal {
+      font-size: 0.8rem;
+      color: #667;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    /* 第二行：P / F / C */
+    .meal-pfc-row {
+      display: grid;
+      grid-template-columns: repeat(3, auto);
+      column-gap: 0.8rem;
+      font-size: 0.75rem;
+      color: #7a7a7a;
+      margin-top: 0.1rem;
+      width: 100%;
+    }
+
+    .meal-pfc-row span {
+      white-space: nowrap;
+    }
+
+    /* 移动端优化：收窄间距，依然不超出屏幕 */
+    @media (max-width: 480px) {
+      .layout {
+        padding: 0 8px;
+      }
+
+      .meal-item-line1 {
+        grid-template-columns: minmax(0, 1.7fr) auto auto;
+        column-gap: 0.3rem;
+      }
+
+      .meal-qty,
+      .meal-cal {
+        font-size: 0.75rem;
+      }
+
+      .meal-pfc-row {
+        column-gap: 0.4rem;
+        font-size: 0.7rem;
+        grid-template-columns: repeat(3, auto);
+      }
+    }
+
+    .meal-header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.15rem;
+    }
+
+    .meal-total-kcal {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #222;
+      white-space: nowrap;
+    }
+  </style>
+
+
+
+</head>
+
+<body>
+  <div class="layout">
+
+    <!-- 侧栏：桌面端档案 -->
+    <aside class="sidebar card">
+      <h2>我的档案</h2>
+      <div class="profile">
+        <label>身高(cm)
+          <input id="height_cm" type="number" step="0.1">
+        </label>
+        <label>体重(kg)
+          <input id="weight_kg" type="number" step="0.1">
+        </label>
+        <label>体脂率(%)
+          <input id="body_fat_pct" type="number" step="0.1">
+        </label>
+        <button id="save_profile" class="btn primary" type="button">保存档案</button>
+        <p class="muted small" id="profile_updated"></p>
+      </div>
+      <p class="muted tiny" style="margin-top:.4rem;">仅用于个性化分析，不对他人展示。</p>
+    </aside>
+
+    <!-- 主区域 -->
+    <main class="main">
+
+      <!-- 移动端档案折叠：桌面隐藏，手机显示 -->
+      <section class="card mobile-only">
+        <details>
+          <summary>我的档案（身高 / 体重 / 体脂）</summary>
+          <div class="profile" style="margin-top:.4rem;">
+            <label>身高(cm)
+              <input id="m_height_cm" type="number" step="0.1">
+            </label>
+            <label>体重(kg)
+              <input id="m_weight_kg" type="number" step="0.1">
+            </label>
+            <label>体脂率(%)
+              <input id="m_body_fat_pct" type="number" step="0.1">
+            </label>
+            <button id="m_save_profile" class="btn outline" type="button">保存档案</button>
+            <p class="muted small" id="m_profile_updated"></p>
+          </div>
+        </details>
+      </section>
+
+      <!-- AI 餐食录入 -->
+      <section class="card">
+        <h2>餐食分析录入</h2>
+        <div class="chatbox">
+          <textarea id="meal_input" rows="4"
+            placeholder="示例：早餐：两片全麦吐司(约60g)、煎鸡蛋1个、牛油果半个、黑咖啡不加糖。由 AI 帮你估算营养并记录。"></textarea>
+          <div class="row">
+            <button id="analyze" class="btn" type="button">分析并记录这一餐</button>
+            <button id="summarize" class="btn outline" type="button">生成 / 更新今日总结</button>
+          </div>
+          <div id="error" class="error" style="display:none;"></div>
+          <div id="analyze_result" class="muted small" style="margin-top:.4rem;"></div>
+        </div>
+      </section>
+
+      <!-- 今日数据 -->
+      <section class="card">
+        <h2>今日记录 <span id="today_date" class="muted"></span></h2>
+        <div id="totals" class="totals"></div>
+        <div id="meals"></div>
+      </section>
+
+      <!-- 今日总结（AI 动态生成） -->
+      <section id="today_summary_block" class="card" style="display:none;">
+        <h2>今日总结</h2>
+        <div id="today_summary_content" class="muted"></div>
+      </section>
+
+      <!-- 历史简表 -->
+      <section class="card">
+        <h2>历史总览</h2>
+        <div class="row">
+          <select id="day_select"></select>
+          <button id="view_day" class="btn outline" type="button">查看该日总量</button>
+        </div>
+        <div id="history_totals" class="totals" style="margin-top:.6rem;"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/index.js"></script>
+
+
+</body>
+
+</html>
