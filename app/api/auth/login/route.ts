@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
 
   const result = await db.query(
-    "select id, email, password_hash, is_active from users where email = $1 limit 1",
+    "select id, email, password_hash, is_active, email_verified from users where email = $1 limit 1",
     [email]
   );
 
@@ -28,6 +28,17 @@ export async function POST(request: Request) {
 
   if (!user.is_active) {
     return badRequest("user inactive", 403);
+  }
+
+  if (!user.email_verified) {
+    return json(
+      {
+        ok: false,
+        error: "email not verified",
+        error_code: "email_not_verified"
+      },
+      403
+    );
   }
 
   await createSession({

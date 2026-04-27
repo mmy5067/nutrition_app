@@ -1,0 +1,94 @@
+import { createHash, randomBytes } from "node:crypto";
+import { env } from "./env";
+
+export const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
+export const EMAIL_VERIFICATION_RESEND_INTERVAL_MS = 60 * 1000;
+
+export function createEmailVerificationToken() {
+  return randomBytes(24).toString("hex");
+}
+
+export function hashEmailVerificationToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function getEmailVerificationExpiresAt() {
+  return new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS).toISOString();
+}
+
+export function canResendVerification(lastAttemptAt?: string | null) {
+  if (!lastAttemptAt) {
+    return true;
+  }
+
+  const lastAttempt = Date.parse(lastAttemptAt);
+  if (Number.isNaN(lastAttempt)) {
+    return true;
+  }
+
+  return Date.now() - lastAttempt >= EMAIL_VERIFICATION_RESEND_INTERVAL_MS;
+}
+
+export function getResendRetryAfterSeconds(lastAttemptAt?: string | null) {
+  if (!lastAttemptAt) {
+    return 0;
+  }
+
+  const lastAttempt = Date.parse(lastAttemptAt);
+  if (Number.isNaN(lastAttempt)) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Math.ceil((EMAIL_VERIFICATION_RESEND_INTERVAL_MS - (Date.now() - lastAttempt)) / 1000)
+  );
+}
+
+export async function sendVerificationEmail(email: string, token: string) {
+  if (!env.resendApiKey || !env.emailFrom) {
+    return {
+      ok: false,
+      error: "email delivery not configured"
+    };
+  }
+
+  const verifyUrl = `${env.appUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.resendApiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: env.emailFrom,
+      to: [email],
+      subject: "请验证你的邮箱",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #1d2b24; line-height: 1.7;">
+          <h2 style="margin: 0 0 12px;">验证你的邮箱</h2>
+          <p style="margin: 0 0 12px;">感谢注册 Nutrition App。请在 24 小时内点击下方按钮完成邮箱验证。</p>
+          <p style="margin: 20px 0;">
+            <a href="${verifyUrl}" style="display:inline-block;padding:12px 18px;border-radius:10px;background:#49a078;color:#ffffff;text-decoration:none;">
+              立即验证邮箱
+            </a>
+          </p>
+          <p style="margin: 0 0 8px;">如果按钮无法打开，可以复制下面的链接到浏览器：</p>
+          <p style="margin: 0; word-break: break-all;">${verifyUrl}</p>
+        </div>
+      `,
+      text: `感谢注册 Nutrition App。请在 24 小时内打开以下链接完成邮箱验证：${verifyUrl}`
+    })
+  });
+
+  if (response.ok) {
+    return { ok: true };
+  }
+
+  const errorText = await response.text().catch(() => "");
+  return {
+    ok: false,
+    error: errorText || `resend request failed with status ${response.status}`
+  };
+}

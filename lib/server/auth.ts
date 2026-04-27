@@ -63,12 +63,12 @@ export async function requireUser() {
   }
 
   const result = await db.query(
-    "select id, email, is_active, is_admin from users where id = $1 limit 1",
+    "select id, email, is_active, is_admin, email_verified from users where id = $1 limit 1",
     [session.userId]
   );
 
   const user = result.rows[0];
-  if (!user || !user.is_active) {
+  if (!user || !user.is_active || !user.email_verified) {
     return null;
   }
 

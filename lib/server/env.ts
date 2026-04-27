@@ -23,5 +23,8 @@ export const env = {
   openAiBaseUrl: process.env.OPENAI_BASE_URL ?? "",
   modelName: process.env.MODEL_NAME ?? "gpt-4o-mini",
   adminEmail: process.env.ADMIN_EMAIL?.trim().toLowerCase() || "admin@example.com",
-  adminPassword: process.env.ADMIN_PASSWORD ?? "admin123456"
+  adminPassword: process.env.ADMIN_PASSWORD ?? "admin123456",
+  resendApiKey: process.env.RESEND_API_KEY?.trim() ?? "",
+  emailFrom: process.env.EMAIL_FROM?.trim() ?? "",
+  appUrl: (process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:5000").replace(/\/$/, "")
 };

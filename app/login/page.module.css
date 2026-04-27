@@ -60,6 +60,13 @@
   font-size: 14px;
 }
 
+.helper {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .input {
   width: 100%;
   border-radius: 10px;
@@ -74,6 +81,10 @@
 .success {
   min-height: 22px;
   font-size: 14px;
+}
+
+.resendRow {
+  margin-top: 10px;
 }
 
 .hint {
