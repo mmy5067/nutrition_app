@@ -69,20 +69,21 @@ function buildVerificationEmail(verifyUrl: string) {
 export async function sendVerificationEmail(email: string, token: string) {
   const verifyUrl = `${env.appUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 
-  // 优先使用 SMTP（163邮箱），国内到达率更高
+  // 使用 SMTP 发送验证邮件
   if (env.smtpHost && env.smtpUser && env.smtpPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: env.smtpHost,
-        port: Number(env.smtpPort) || 465,
-        secure: true,
-        auth: {
-          user: env.smtpUser,
-          pass: env.smtpPass
-        }
-      });
+    const transporter = nodemailer.createTransport({
+      host: env.smtpHost,
+      port: Number(env.smtpPort) || 465,
+      secure: true,
+      auth: {
+        user: env.smtpUser,
+        pass: env.smtpPass
+      }
+    });
 
-      const mailContent = buildVerificationEmail(verifyUrl);
+    const mailContent = buildVerificationEmail(verifyUrl);
+
+    try {
       await transporter.sendMail({
         from: env.emailFrom,
         to: email,
@@ -90,45 +91,18 @@ export async function sendVerificationEmail(email: string, token: string) {
         html: mailContent.html,
         text: mailContent.text
       });
-
       return { ok: true };
     } catch (err) {
-      console.error("SMTP send failed, falling back to Resend:", err);
-      // fallback to Resend
+      console.error("SMTP send failed:", err);
+      return {
+        ok: false,
+        error: "邮件发送失败，请稍后重试"
+      };
     }
-  }
-
-  // 备选：Resend
-  if (env.resendApiKey && env.emailFrom) {
-    const mailContent = buildVerificationEmail(verifyUrl);
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.resendApiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: env.emailFrom,
-        to: [email],
-        subject: mailContent.subject,
-        html: mailContent.html,
-        text: mailContent.text
-      })
-    });
-
-    if (response.ok) {
-      return { ok: true };
-    }
-
-    const errorText = await response.text().catch(() => "");
-    return {
-      ok: false,
-      error: errorText || `resend request failed with status ${response.status}`
-    };
   }
 
   return {
     ok: false,
-    error: "email delivery not configured"
+    error: "邮件服务未配置"
   };
 }

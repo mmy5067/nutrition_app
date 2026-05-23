@@ -4,15 +4,13 @@
 
 ## 核心功能
 
-| 功能 | 说明 |
-|------|------|
-| 🍽️ **自然语言记餐** | 输入"鸡胸肉 150g、米饭 200g、西兰花一份"，AI 自动拆解食材并估算热量 |
-| 📊 **每日营养汇总** | 热量 / 蛋白质 / 脂肪 / 碳水，一目了然 |
-| 📝 **AI 每日总结** | 记录完成后一键生成当天的饮食总结 |
-| 🏋️ **身体资料管理** | 记录身高 / 体重 / 体脂，可折叠式卡片设计，手机友好 |
-| 📧 **邮箱验证登录** | 注册 → 收验证邮件 → 点击链接 → 登录，0 短信依赖 |
-| 🔧 **后台管理** | 管理员可查阅用户、餐食、系统摘要 |
-| 📱 **PWA 支持** | 可添加到手机桌面，带图标 / 独立窗口 / Splash Screen |
+- 🍽️ **自然语言记餐** — 输入"鸡胸肉 150g、米饭 200g"，AI 自动拆解食材并估算营养
+- 📊 **每日营养汇总** — 热量 / 蛋白质 / 脂肪 / 碳水，一目了然
+- 📝 **AI 每日总结** — 记录完成后一键生成当天的饮食总结
+- 🏋️ **身体资料管理** — 身高 / 体重 / 体脂，可折叠卡片，手机友好
+- 📧 **邮箱验证登录** — 注册 → 收验证邮件 → 点击链接 → 登录
+- 🔧 **后台管理** — 管理员查阅用户、餐食、系统摘要
+- 📱 **PWA 支持** — 添加到手机桌面，独立窗口运行
 
 ## 技术栈
 
@@ -22,21 +20,16 @@
 | 语言 | TypeScript |
 | 数据库 | SQLite（内置，零配置） |
 | AI | OpenAI / 兼容 API |
-| 邮件 | 163 SMTP（主力）+ Resend（备用） |
+| 邮件 | 163 SMTP（国内直达 QQ/163 邮箱） |
 | 部署 | 阿里云 ECS + Nginx + systemd |
-| 图标 | SVG 蔬菜图标（iOS / Android 桌面图标均已配置） |
+| PWA | SVG 蔬菜图标 + Apple Touch Icon + Manifest |
 
 ## 快速开始
 
 ```bash
-# 克隆
 git clone git@github.com:mmy5067/nutrition_app.git
 cd nutrition_app
-
-# 安装依赖
 npm install
-
-# 复制环境变量
 cp .env.example .env
 ```
 
@@ -44,11 +37,11 @@ cp .env.example .env
 
 ```env
 DATABASE_URL=sqlite:./db/local.sqlite
-SECRET_KEY=change_me_to_a_random_long_value
-OPENAI_API_KEY=sk-xxx
+SECRET_KEY=<随机字符串>
+OPENAI_API_KEY=<你的 API Key>
 MODEL_NAME=gpt-4o-mini
 ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=admin123456
+ADMIN_PASSWORD=<密码>
 ```
 
 启动开发模式：
@@ -61,30 +54,23 @@ npm run dev
 
 ## 部署
 
-单台 2 核 2G ECS 友好设计，推荐 production build：
-
 ```bash
 npm run build
 npm start --port 5000
 ```
 
-Nginx 反向代理 + Let's Encrypt 白嫖 SSL，参考 `nginx.conf` 示例（见下方）。
+Nginx 反向代理 + Let's Encrypt SSL。
 
 ## PWA / 添加到桌面
 
-网站支持 PWA，用 Safari 打开后：
+Safari 打开网站 → 分享按钮 → 「添加到主屏幕」。以独立窗口启动，无浏览器地址栏。
 
-1. 点击分享按钮
-2. 选择「添加到主屏幕」
-3. 应用以独立窗口启动，无浏览器地址栏
-4. 桌面显示蔬菜图标 + 名称"营养记录"
-
-## 环境变量说明
+## 环境变量
 
 | 变量 | 说明 |
 |------|------|
 | `DATABASE_URL` | 数据库连接串（SQLite / PostgreSQL） |
-| `SECRET_KEY` | 加密密钥，用于 session |
+| `SECRET_KEY` | 加密密钥 |
 | `OPENAI_API_KEY` | AI 分析 API Key |
 | `OPENAI_BASE_URL` | 自定义 API 地址（可选） |
 | `MODEL_NAME` | 模型名称 |
@@ -95,74 +81,31 @@ Nginx 反向代理 + Let's Encrypt 白嫖 SSL，参考 `nginx.conf` 示例（见
 | `SMTP_USER` | SMTP 账号 |
 | `SMTP_PASS` | SMTP 密码 |
 | `SMTP_FROM` | 发件邮箱 |
-| `RESEND_API_KEY` | Resend API Key（备用通道） |
-| `RESEND_FROM` | Resend 发件地址 |
 | `EMAIL_FROM` | 统一发件地址 |
 | `NEXT_PUBLIC_APP_URL` | 应用外部访问 URL |
 
-## Nginx 配置参考
-
-```nginx
-server {
-    server_name nutrition.lovezoe.top;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /admin {
-        # 建议加 IP 白名单
-        # allow YOUR_IP;
-        # deny all;
-
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    listen 443 ssl;
-    ssl_certificate /etc/letsencrypt/live/example.top/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.top/privkey.pem;
-}
-```
-
 ## 邮件通道
 
-默认使用 **163 SMTP**（国内直达，不被拦截），失败时自动 **fallback 到 Resend**：
+使用 **163 SMTP** 发送验证邮件，国内直达，QQ 邮箱 / 163 邮箱均可正常接收。
 
-```
-SMTP（163）→ 成功 ✓
-SMTP（163）→ 失败 → Resend（备用）
-```
-
-QQ 邮箱 / 163 邮箱均可正常接收验证邮件。
-
-## 文件结构摘要
+## 文件结构
 
 ```
 nutrition_app/
 ├── app/
-│   ├── admin/          # 后台管理页面
+│   ├── admin/          # 后台管理
 │   ├── api/            # API 路由
 │   ├── dashboard/      # 用户仪表盘
-│   ├── login/          # 登录/注册页面
-│   └── layout.tsx      # 全局布局（含图标 / PWA 配置）
+│   ├── login/          # 登录/注册
+│   └── layout.tsx      # 全局布局（PWA 配置）
 ├── lib/
-│   ├── server/         # 服务端逻辑（DB / 邮件 / AI）
+│   ├── server/         # 服务端逻辑
 │   └── api.ts          # 前端 API 工具
 ├── public/
-│   ├── icons/          # 应用图标（SVG + PNG）
-│   └── manifest.json   # PWA 配置文件
-├── temp/
-│   └── legacy-python/  # 旧版本 Python 代码（参考用）
-├── .env                # 环境变量
-└── next.config.mjs     # Next.js 配置
+│   ├── icons/          # 应用图标
+│   └── manifest.json   # PWA 配置
+├── temp/legacy-python/ # 旧版本代码
+└── .env
 ```
 
 ## 许可证
