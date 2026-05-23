@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { env } from "./env";
+import nodemailer from "nodemailer";
 
 export const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 export const EMAIL_VERIFICATION_RESEND_INTERVAL_MS = 60 * 1000;
@@ -45,50 +46,89 @@ export function getResendRetryAfterSeconds(lastAttemptAt?: string | null) {
   );
 }
 
+function buildVerificationEmail(verifyUrl: string) {
+  return {
+    subject: "请验证你的邮箱",
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #1d2b24; line-height: 1.7;">
+        <h2 style="margin: 0 0 12px;">验证你的邮箱</h2>
+        <p style="margin: 0 0 12px;">感谢注册 Nutrition App。请在 24 小时内点击下方按钮完成邮箱验证。</p>
+        <p style="margin: 20px 0;">
+          <a href="${verifyUrl}" style="display:inline-block;padding:12px 18px;border-radius:10px;background:#49a078;color:#ffffff;text-decoration:none;">
+            立即验证邮箱
+          </a>
+        </p>
+        <p style="margin: 0 0 8px;">如果按钮无法打开，可以复制下面的链接到浏览器：</p>
+        <p style="margin: 0; word-break: break-all;">${verifyUrl}</p>
+      </div>
+    `,
+    text: `感谢注册 Nutrition App。请在 24 小时内打开以下链接完成邮箱验证：${verifyUrl}`
+  };
+}
+
 export async function sendVerificationEmail(email: string, token: string) {
-  if (!env.resendApiKey || !env.emailFrom) {
+  const verifyUrl = `${env.appUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+
+  // 优先使用 SMTP（163邮箱），国内到达率更高
+  if (env.smtpHost && env.smtpUser && env.smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: env.smtpHost,
+        port: Number(env.smtpPort) || 465,
+        secure: true,
+        auth: {
+          user: env.smtpUser,
+          pass: env.smtpPass
+        }
+      });
+
+      const mailContent = buildVerificationEmail(verifyUrl);
+      await transporter.sendMail({
+        from: env.emailFrom,
+        to: email,
+        subject: mailContent.subject,
+        html: mailContent.html,
+        text: mailContent.text
+      });
+
+      return { ok: true };
+    } catch (err) {
+      console.error("SMTP send failed, falling back to Resend:", err);
+      // fallback to Resend
+    }
+  }
+
+  // 备选：Resend
+  if (env.resendApiKey && env.emailFrom) {
+    const mailContent = buildVerificationEmail(verifyUrl);
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.resendApiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: env.emailFrom,
+        to: [email],
+        subject: mailContent.subject,
+        html: mailContent.html,
+        text: mailContent.text
+      })
+    });
+
+    if (response.ok) {
+      return { ok: true };
+    }
+
+    const errorText = await response.text().catch(() => "");
     return {
       ok: false,
-      error: "email delivery not configured"
+      error: errorText || `resend request failed with status ${response.status}`
     };
   }
 
-  const verifyUrl = `${env.appUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.resendApiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: env.emailFrom,
-      to: [email],
-      subject: "请验证你的邮箱",
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #1d2b24; line-height: 1.7;">
-          <h2 style="margin: 0 0 12px;">验证你的邮箱</h2>
-          <p style="margin: 0 0 12px;">感谢注册 Nutrition App。请在 24 小时内点击下方按钮完成邮箱验证。</p>
-          <p style="margin: 20px 0;">
-            <a href="${verifyUrl}" style="display:inline-block;padding:12px 18px;border-radius:10px;background:#49a078;color:#ffffff;text-decoration:none;">
-              立即验证邮箱
-            </a>
-          </p>
-          <p style="margin: 0 0 8px;">如果按钮无法打开，可以复制下面的链接到浏览器：</p>
-          <p style="margin: 0; word-break: break-all;">${verifyUrl}</p>
-        </div>
-      `,
-      text: `感谢注册 Nutrition App。请在 24 小时内打开以下链接完成邮箱验证：${verifyUrl}`
-    })
-  });
-
-  if (response.ok) {
-    return { ok: true };
-  }
-
-  const errorText = await response.text().catch(() => "");
   return {
     ok: false,
-    error: errorText || `resend request failed with status ${response.status}`
+    error: "email delivery not configured"
   };
 }

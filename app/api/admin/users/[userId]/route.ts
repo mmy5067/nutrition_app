@@ -27,5 +27,5 @@ export async function DELETE(_request: Request, context: { params: Promise<{ use
   }
 
   const result = await db.query("delete from users where id = $1", [targetUserId]);
-  return json({ ok: result.rowCount > 0 });
+  return json({ ok: (result.rowCount ?? 0) > 0 });
 }

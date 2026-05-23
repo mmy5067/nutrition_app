@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import { DatabaseSync, SQLInputValue } from "node:sqlite";
 import { Pool } from "pg";
 import { env } from "./env";
 import { hashPassword } from "./passwords";
@@ -327,7 +327,7 @@ class SqliteClient implements Queryable {
 
     if (isSelectStatement(normalized)) {
       const rows = statement
-        .all(...orderedParams)
+        .all(...orderedParams as SQLInputValue[])
         .map((row) => mapSqliteRow(row as Record<string, unknown>)) as T[];
       return {
         rows,
@@ -337,7 +337,7 @@ class SqliteClient implements Queryable {
 
     if (/\breturning\b/i.test(normalized)) {
       const rows = statement
-        .all(...orderedParams)
+        .all(...orderedParams as SQLInputValue[])
         .map((row) => mapSqliteRow(row as Record<string, unknown>)) as T[];
       return {
         rows,
@@ -345,7 +345,7 @@ class SqliteClient implements Queryable {
       };
     }
 
-    const result = statement.run(...orderedParams);
+    const result = statement.run(...orderedParams as SQLInputValue[]);
     return {
       rows: [],
       rowCount: Number(result.changes ?? 0)

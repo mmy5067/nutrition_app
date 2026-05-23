@@ -38,6 +38,7 @@ export default function DashboardPage() {
   });
   const [profileMessage, setProfileMessage] = useState("完善基础资料后，系统可以提供更贴近你的饮食反馈。");
   const [profilePending, setProfilePending] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [mealInput, setMealInput] = useState("");
   const [mealMessage, setMealMessage] = useState("描述这一餐吃了什么，系统会自动整理餐食内容并估算营养。");
   const [mealStatus, setMealStatus] = useState<"muted" | "ok" | "error">("muted");
@@ -210,6 +211,14 @@ export default function DashboardPage() {
     router.refresh();
   }
 
+  function formatProfileSummary() {
+    const parts: string[] = [];
+    if (profile.height_cm) parts.push(`${profile.height_cm} cm`);
+    if (profile.weight_kg) parts.push(`${profile.weight_kg} kg`);
+    if (profile.body_fat_pct) parts.push(`${profile.body_fat_pct}% 体脂`);
+    return parts.length > 0 ? parts.join(" · ") : "未填写";
+  }
+
   if (booting) {
     return (
       <main className={styles.wrap}>
@@ -219,6 +228,8 @@ export default function DashboardPage() {
       </main>
     );
   }
+
+  const hasProfile = profile.height_cm || profile.weight_kg || profile.body_fat_pct;
 
   return (
     <main className={styles.wrap}>
@@ -245,42 +256,75 @@ export default function DashboardPage() {
             </section>
 
             <section className={`glass-card ${styles.panel}`}>
-              <h2 style={{ marginTop: 0 }}>身体资料</h2>
-              <div className={styles.fieldGrid}>
-                <label className={styles.label}>
-                  身高 cm
-                  <input
-                    className={styles.input}
-                    type="number"
-                    value={profile.height_cm ?? ""}
-                    onChange={(event) => setProfile((prev) => ({ ...prev, height_cm: toNumber(event.target.value) }))}
-                  />
-                </label>
-                <label className={styles.label}>
-                  体重 kg
-                  <input
-                    className={styles.input}
-                    type="number"
-                    value={profile.weight_kg ?? ""}
-                    onChange={(event) => setProfile((prev) => ({ ...prev, weight_kg: toNumber(event.target.value) }))}
-                  />
-                </label>
-                <label className={styles.label}>
-                  体脂 %
-                  <input
-                    className={styles.input}
-                    type="number"
-                    value={profile.body_fat_pct ?? ""}
-                    onChange={(event) => setProfile((prev) => ({ ...prev, body_fat_pct: toNumber(event.target.value) }))}
-                  />
-                </label>
-              </div>
-              <button className="button-primary" style={{ marginTop: 18 }} type="button" onClick={() => void saveProfile()}>
-                {profilePending ? "保存中..." : "保存资料"}
+              <button
+                type="button"
+                onClick={() => setProfileOpen((prev) => !prev)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  color: "inherit",
+                  textAlign: "left"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <img src="/icons/favicon.svg" alt="" width={24} height={24} style={{ opacity: 0.6 }} />
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: 18 }}>身体资料</h2>
+                    <p className={styles.messageMuted} style={{ margin: "4px 0 0", fontSize: 13 }}>
+                      {hasProfile ? formatProfileSummary() : "还未填写"}
+                    </p>
+                  </div>
+                </div>
+                <span style={{ fontSize: 16, transition: "transform 0.2s", transform: profileOpen ? "rotate(180deg)" : "none" }}>
+                  ▼
+                </span>
               </button>
-              <p className={styles.messageMuted} style={{ marginTop: 14 }}>
-                {profileMessage}
-              </p>
+
+              {profileOpen && (
+                <div style={{ marginTop: 16 }}>
+                  <div className={styles.fieldGrid}>
+                    <label className={styles.label}>
+                      身高 cm
+                      <input
+                        className={styles.input}
+                        type="number"
+                        value={profile.height_cm ?? ""}
+                        onChange={(event) => setProfile((prev) => ({ ...prev, height_cm: toNumber(event.target.value) }))}
+                      />
+                    </label>
+                    <label className={styles.label}>
+                      体重 kg
+                      <input
+                        className={styles.input}
+                        type="number"
+                        value={profile.weight_kg ?? ""}
+                        onChange={(event) => setProfile((prev) => ({ ...prev, weight_kg: toNumber(event.target.value) }))}
+                      />
+                    </label>
+                    <label className={styles.label}>
+                      体脂 %
+                      <input
+                        className={styles.input}
+                        type="number"
+                        value={profile.body_fat_pct ?? ""}
+                        onChange={(event) => setProfile((prev) => ({ ...prev, body_fat_pct: toNumber(event.target.value) }))}
+                      />
+                    </label>
+                  </div>
+                  <button className="button-primary" style={{ marginTop: 18, width: "100%" }} type="button" onClick={() => void saveProfile()}>
+                    {profilePending ? "保存中..." : "保存资料"}
+                  </button>
+                  <p className={styles.messageMuted} style={{ marginTop: 14 }}>
+                    {profileMessage}
+                  </p>
+                </div>
+              )}
             </section>
           </aside>
 
@@ -338,31 +382,32 @@ export default function DashboardPage() {
             </section>
 
             <section className={`glass-card ${styles.panel}`}>
-              <h2 style={{ marginTop: 0 }}>今日餐食</h2>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <img src="/icons/favicon.svg" alt="" width={22} height={22} style={{ opacity: 0.5 }} />
+                <h2 style={{ margin: 0 }}>今日餐食</h2>
+              </div>
               {meals.length === 0 ? (
-                <p className="section-copy">今天还没有餐食记录，先从第一顿开始吧。</p>
+                <p className="section-copy" style={{ marginTop: 14 }}>
+                  今天还没有餐食记录，在上方输入描述后开始记录。
+                </p>
               ) : (
-                <div className={styles.mealList}>
+                <div className={styles.mealList} style={{ marginTop: 14 }}>
                   {meals.map((meal) => (
                     <article key={meal.id} className={styles.mealCard}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                         <div>
-                          <strong style={{ fontSize: 22 }}>{meal.meal_type || "未分类"}</strong>
-                          <p className="section-copy" style={{ marginTop: 6 }}>
-                            {new Date(meal.eaten_at).toLocaleTimeString("zh-CN", {
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
-                            {meal.note ? ` / ${meal.note}` : ""}
-                          </p>
+                          <strong>{meal.meal_type || "未分类"}</strong>
+                          <div className="section-copy" style={{ marginTop: 4 }}>
+                            {new Date(meal.eaten_at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+                          </div>
                         </div>
-                        <button className="button-ghost" type="button" onClick={() => void deleteMeal(meal.id)}>
+                        <button className="button-ghost" type="button" style={{ fontSize: 13, padding: "4px 10px" }} onClick={() => void deleteMeal(meal.id)}>
                           删除
                         </button>
                       </div>
                       <div className={styles.mealItems}>
-                        {meal.items.map((item, index) => (
-                          <div key={`${meal.id}-${index}`} className={styles.mealItem}>
+                        {meal.items.map((item) => (
+                          <div key={item.id} className={styles.mealItem}>
                             <div>
                               <strong>{item.name}</strong>
                               <div className="section-copy" style={{ marginTop: 6, fontSize: 14 }}>
@@ -385,7 +430,10 @@ export default function DashboardPage() {
             </section>
 
             <section className={`glass-card ${styles.panel}`}>
-              <h2 style={{ marginTop: 0 }}>AI 每日总结</h2>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <img src="/icons/favicon.svg" alt="" width={22} height={22} style={{ opacity: 0.5 }} />
+                <h2 style={{ margin: 0 }}>AI 每日总结</h2>
+              </div>
               <p className="section-copy" style={{ whiteSpace: "pre-wrap", marginTop: 14 }}>
                 {summary || "完成当天记录后，可以在这里生成一段简洁的饮食总结。"}
               </p>

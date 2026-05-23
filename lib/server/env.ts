@@ -26,5 +26,9 @@ export const env = {
   adminPassword: process.env.ADMIN_PASSWORD ?? "admin123456",
   resendApiKey: process.env.RESEND_API_KEY?.trim() ?? "",
   emailFrom: process.env.EMAIL_FROM?.trim() ?? "",
-  appUrl: (process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:5000").replace(/\/$/, "")
+  appUrl: (process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:5000").replace(/\/$/, ""),
+  smtpHost: process.env.SMTP_HOST?.trim() ?? "",
+  smtpPort: process.env.SMTP_PORT?.trim() ?? "465",
+  smtpUser: process.env.SMTP_USER?.trim() ?? "",
+  smtpPass: process.env.SMTP_PASS?.trim() ?? "",
 };

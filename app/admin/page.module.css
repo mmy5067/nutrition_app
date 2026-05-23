@@ -73,3 +73,53 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ========== 手机端优化 ========== */
+
+@media (max-width: 640px) {
+  .wrap {
+    padding: 12px 0 36px;
+  }
+
+  .panel {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .summaryCard {
+    padding: 10px 12px;
+  }
+
+  .summaryCard div:last-child {
+    font-size: 22px !important;
+  }
+
+  .tableWrap {
+    margin: 0 -14px;
+    padding: 0 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 8px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 13px;
+  }
+}

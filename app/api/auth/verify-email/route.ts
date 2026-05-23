@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/server/db";
 import { hashEmailVerificationToken } from "@/lib/server/email-verification";
+import { env } from "@/lib/server/env";
 
 type VerificationRow = {
   id: number | string;
@@ -8,10 +9,11 @@ type VerificationRow = {
   email_verification_expires_at?: string | null;
 };
 
-function redirectWithStatus(request: Request, status: string) {
-  const url = new URL("/login", request.url);
+function redirectWithStatus(status: string) {
+  const baseUrl = env.appUrl.replace(/\/$/, "");
+  const url = new URL("/login", baseUrl);
   url.searchParams.set("verification", status);
-  return NextResponse.redirect(url);
+  return NextResponse.redirect(url.toString());
 }
 
 export async function GET(request: Request) {
@@ -19,7 +21,7 @@ export async function GET(request: Request) {
   const token = searchParams.get("token")?.trim();
 
   if (!token) {
-    return redirectWithStatus(request, "invalid");
+    return redirectWithStatus("invalid");
   }
 
   const tokenHash = hashEmailVerificationToken(token);
@@ -33,16 +35,16 @@ export async function GET(request: Request) {
 
   const user = result.rows[0];
   if (!user) {
-    return redirectWithStatus(request, "invalid");
+    return redirectWithStatus("invalid");
   }
 
   if (Boolean(user.email_verified)) {
-    return redirectWithStatus(request, "success");
+    return redirectWithStatus("success");
   }
 
   const expiresAt = user.email_verification_expires_at ? Date.parse(String(user.email_verification_expires_at)) : NaN;
   if (Number.isNaN(expiresAt) || expiresAt < Date.now()) {
-    return redirectWithStatus(request, "expired");
+    return redirectWithStatus("expired");
   }
 
   await db.query(
@@ -58,5 +60,5 @@ export async function GET(request: Request) {
     [Number(user.id), new Date().toISOString()]
   );
 
-  return redirectWithStatus(request, "success");
+  return redirectWithStatus("success");
 }
