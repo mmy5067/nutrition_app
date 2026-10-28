@@ -2,23 +2,30 @@
   "name": "nutrition-app",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "next dev --port 5000",
     "build": "next build",
     "start": "next start --port 5000",
-    "lint": "next lint"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "jose": "6.1.0",
-    "next": "16.2.4",
-    "nodemailer": "^8.0.7",
+    "next": "16.4.3",
+    "nodemailer": "10.2.1",
     "pg": "8.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
   "devDependencies": {
     "@types/node": "22.15.17",
-    "@types/nodemailer": "^8.0.0",
     "@types/pg": "8.15.5",
     "@types/react": "19.1.2",
     "@types/react-dom": "19.1.2",

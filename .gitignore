@@ -19,4 +19,19 @@ pnpm-debug.log*
 
 .DS_Store
 Thumbs.db
-db/*.sqlite
+*.tsbuildinfo
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+*.sql.gz
+*.dump
+*.log
+*.pem
+*.key
+backups/
+.idea/
+.vscode/
+.next-*/

@@ -204,7 +204,7 @@ function isSelectStatement(sql: string) {
 
 function toSqliteFilename(url: string) {
   const relativePath = url.replace(/^sqlite:(\/\/)?/, "");
-  return path.isAbsolute(relativePath) ? relativePath : path.join(process.cwd(), relativePath);
+  return path.isAbsolute(relativePath) ? relativePath : path.join(/* turbopackIgnore: true */ process.cwd(), relativePath);
 }
 
 function normalizeSqlForSqlite(sql: string) {
@@ -229,7 +229,7 @@ function getSqliteState() {
     const filename = toSqliteFilename(env.databaseUrl);
     mkdirSync(path.dirname(filename), { recursive: true });
     const sqlite = new DatabaseSync(filename);
-    sqlite.exec("pragma foreign_keys = on;");
+    sqlite.exec("pragma busy_timeout = 5000; pragma foreign_keys = on;");
     global.__nutritionSqliteState = {
       db: sqlite,
       initialized: false
@@ -370,9 +370,8 @@ function createDb() {
         connectionString: env.databaseUrl
       });
 
-    if (process.env.NODE_ENV !== "production") {
-      global.__nutritionDbPool = pool;
-    }
+    // Transactions must use the same pool in production as ordinary queries.
+    global.__nutritionDbPool = pool;
 
     return {
       kind: "postgres" as const,
@@ -388,12 +387,21 @@ function createDb() {
   };
 }
 
-const driver = createDb();
+// Importing routes during next build must not open or modify the database.
+let driver: ReturnType<typeof createDb> | undefined;
+function getDriver() {
+  return driver ??= createDb();
+}
 
-export const db = driver.client;
-export const dbKind = driver.kind;
+export const db: Queryable = {
+  query<T = Record<string, unknown>>(sql: string, params?: unknown[]) {
+    return getDriver().client.query<T>(sql, params);
+  }
+};
+export const dbKind = isPostgresUrl(env.databaseUrl) ? "postgres" : "sqlite";
 
 export async function withTransaction<T>(fn: (client: Queryable) => Promise<T>) {
+  getDriver();
   if (dbKind === "postgres") {
     const pool = global.__nutritionDbPool!;
     await initializePostgres(pool);
